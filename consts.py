@@ -10,19 +10,19 @@ WIDTH = info.current_w
 FPS = 30
 
 #Images
-WHITE_PAWN_IMG = pygame.image.load(os.path.join("Sources", "Chess_plt60.png"))
-WHITE_KNIGHT_IMG = pygame.image.load(os.path.join("Sources", "Chess_nlt60.png"))
-WHITE_BISHOP_IMG = pygame.image.load(os.path.join("Sources", "Chess_blt60.png"))
-WHITE_ROOK_IMG = pygame.image.load(os.path.join("Sources", "Chess_rlt60.png"))
-WHITE_QUEEN_IMG = pygame.image.load(os.path.join("Sources", "Chess_qlt60.png"))
-WHITE_KING_IMG = pygame.image.load(os.path.join("Sources", "Chess_klt60.png"))
+WHITE_PAWN_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_plt60.png")),(90,90))
+WHITE_KNIGHT_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_nlt60.png")),(90,90))
+WHITE_BISHOP_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_blt60.png")),(90,90))
+WHITE_ROOK_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_rlt60.png")),(90,90))
+WHITE_QUEEN_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_qlt60.png")),(90,90))
+WHITE_KING_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_klt60.png")),(90,90))
 
-BLACK_PAWN_IMG = pygame.image.load(os.path.join("Sources", "Chess_pdt60.png"))
-BLACK_KNIGHT_IMG = pygame.image.load(os.path.join("Sources", "Chess_kdt60.png"))
-BLACK_BISHOP_IMG = pygame.image.load(os.path.join("Sources", "Chess_bdt60.png"))
-BLACK_ROOK_IMG = pygame.image.load(os.path.join("Sources", "Chess_rdt60.png"))
-BLACK_QUEEN_IMG = pygame.image.load(os.path.join("Sources", "Chess_qdt60.png"))
-BLACK_KING_IMG = pygame.image.load(os.path.join("Sources", "Chess_kdt60.png"))
+BLACK_PAWN_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_pdt60.png")),(90,90))
+BLACK_KNIGHT_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_ndt60.png")),(90,90))
+BLACK_BISHOP_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_bdt60.png")),(90,90))
+BLACK_ROOK_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_rdt60.png")),(90,90))
+BLACK_QUEEN_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_qdt60.png")),(90,90))
+BLACK_KING_IMG = pygame.transform.scale(pygame.image.load(os.path.join("Sources", "Chess_kdt60.png")),(90,90))
 
 #Colours
 BACKGROUND_COLOUR = (147,84,25)
