@@ -68,3 +68,19 @@ class Board:
         self.squares[7][6] = Knight(7,6,"white")
         self.squares[7][7] = Rook(7,7,"white")
         self.squares[7][1] = Knight(7,1,"white")
+
+    def select(self, click: tuple):
+        if (
+            (click[0] >= self.start_x) and
+            (click[0] <= self.start_x + self.square_size*8) and 
+            (click[1] >= self.start_y) and 
+            (click[1] <= self.start_y +self.square_size*8)
+        ):
+            click_x, click_y = click[0] - self.start_x, click[1] - self.start_y
+            click_x, click_y = click_x / self.square_size, click_y / self.square_size
+            click_x, click_y = click_x // 1, click_y // 1
+
+            return self.squares[int(click_y)][int(click_x)]
+        else:
+            return None
+

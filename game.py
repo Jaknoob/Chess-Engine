@@ -20,10 +20,14 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                print(board.select(click()))
+
         # Fill the screen with the desired color
         screen.fill(BACKGROUND_COLOUR)
         #Draw the Chessboard
         board.draw_board(screen)
+
 
         # Update the screen
         pygame.display.flip()
@@ -31,3 +35,6 @@ def main():
         clock.tick(FPS)  # limits FPS
 
     pygame.quit()
+
+def click():
+    return pygame.mouse.get_pos()
