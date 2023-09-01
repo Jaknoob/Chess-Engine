@@ -34,13 +34,19 @@ class Board:
         for row in range(len(self.squares)):                        #Loops through rows and columns in array
             for column in range(len(self.squares[row])):
                 square = pygame.Rect(temp_x, temp_y, self.square_size, self.square_size)
-                if column % 2 == row % 2:       
-                    pygame.draw.rect(surface, DARK_SQUARE_COLOUR, square)   #Draws a dark square when rows and columns are both odd, or both even
+                
+                if self.squares[row][column] == 0 or self.squares[row][column].is_selected() == False:
+                    if column % 2 == row % 2:       
+                        pygame.draw.rect(surface, DARK_SQUARE_COLOUR, square)   #Draws a dark square when rows and columns are both odd, or both even
+                    else:
+                        pygame.draw.rect(surface, LIGHT_SQUARE_COLOUR, square)
+                    if self.squares[row][column] !=0:
+                        self.squares[row][column].draw_piece(surface, temp_x, temp_y)
                 else:
-                    pygame.draw.rect(surface, LIGHT_SQUARE_COLOUR, square)
-                if self.squares[row][column] !=0:
-                    transparent_image = self.squares[row][column].image.convert_alpha() #Makes PNG background transparent
-                    surface.blit(transparent_image, (temp_x, temp_y)) #Draws image onto screen
+                    pygame.draw.rect(surface, SELECTED_SQUARE_COLOUR, square)
+                    self.squares[row][column].draw_piece(surface, temp_x, temp_y)
+
+
 
                 temp_x += self.square_size
             temp_x = self.start_x               #Reset temp_x after each row is completed.
@@ -80,7 +86,10 @@ class Board:
             click_x, click_y = click_x / self.square_size, click_y / self.square_size
             click_x, click_y = click_x // 1, click_y // 1
 
-            return self.squares[int(click_y)][int(click_x)]
+            selected_square = self.squares[int(click_y)][int(click_x)]
+            if selected_square != 0:
+                selected_square.selected = True
+                selected_square.is_selected()
         else:
             return None
 

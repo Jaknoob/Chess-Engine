@@ -8,15 +8,17 @@ class Piece:
         self.colour = colour
         self.is_king = False
         self.is_pawn = False
+        self.selected = False
 
     def is_selected(self):
-        pass
+        return self.selected
 
     def move_validation(self):
         pass
 
-    def draw_piece(self):
-        pass
+    def draw_piece(self, surface, x , y):
+        transparent_image = self.image.convert_alpha() #Makes PNG background transparent
+        surface.blit(transparent_image, (x, y)) #Draws image onto screen
 
     def change_position(self):
         pass
