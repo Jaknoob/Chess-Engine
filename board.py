@@ -77,19 +77,30 @@ class Board:
 
     def select(self, click: tuple):
         if (
-            (click[0] >= self.start_x) and
+            (click[0] >= self.start_x) and                  #If the user clicks inside the chessboard
             (click[0] <= self.start_x + self.square_size*8) and 
             (click[1] >= self.start_y) and 
             (click[1] <= self.start_y +self.square_size*8)
         ):
-            click_x, click_y = click[0] - self.start_x, click[1] - self.start_y
-            click_x, click_y = click_x / self.square_size, click_y / self.square_size
-            click_x, click_y = click_x // 1, click_y // 1
+            click_x, click_y = click[0] - self.start_x, click[1] - self.start_y #Compares click to top left of board
+            click_x, click_y = click_x / self.square_size, click_y / self.square_size #Puts difference in terms of squares
+            click_x, click_y = click_x // 1, click_y // 1                       #Round down to the nearest integer
 
             selected_square = self.squares[int(click_y)][int(click_x)]
+            self.unselect()
             if selected_square != 0:
                 selected_square.selected = True
                 selected_square.is_selected()
         else:
-            return None
+            self.unselect()
+
+
+    #Loops through all the pieces and deselects all
+    def unselect(self):
+        for row in range(len(self.squares)):        
+                for column in range(len(self.squares)):
+                    if self.squares[row][column] != 0:
+                        self.squares[row][column].selected = False
+                    
+
 
