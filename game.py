@@ -10,7 +10,7 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    board = Board(8,8) 
+    board = Board(8,8, screen) 
     board.starting_position()
 
     while running:
@@ -26,7 +26,7 @@ def main():
         # Fill the screen with the desired color
         screen.fill(BACKGROUND_COLOUR)
         #Draw the Chessboard
-        board.draw_board(screen)
+        board.draw_board()
 
 
         # Update the screen
