@@ -13,18 +13,6 @@ class Piece:
     def is_selected(self):
         return self.selected
 
-    def move_validation(self, surface, squares):
-        if self.is_selected():
-            start_x = WIDTH/4              #Position on the screen from the left where chessboard should start being drawn
-            start_y = HEIGHT/8             #Position on the screen from the top where chessboard should start being drawn
-            square_size = HEIGHT/12
-            for move in self.valid_moves(squares): 
-                temp_x = start_x + (move[3]* square_size) + square_size/2 
-                temp_y = start_y + (move[4]* square_size) + square_size/2 
-                pygame.draw.circle(surface, (255,0,0), (temp_x, temp_y), 5)
-
-        
-
     def draw_piece(self, surface, x , y):
         transparent_image = self.image.convert_alpha() #Makes PNG background transparent
         surface.blit(transparent_image, (x, y)) #Draws image onto screen
@@ -92,12 +80,15 @@ class Knight(Piece):
         temp_rank = self.rank
         temp_file = temp_file + direction_file             #Continues move in set direction
         temp_rank = temp_rank + direction_rank
-        if 0 <= temp_file <= 7 and 0 <= temp_rank <= 7:      #If move is on the chessboard
+        if 0 <= temp_file <= 7 and 0 <= temp_rank <= 7:      #While move is on the chessboard
             if squares[temp_rank][temp_file] !=0:
-                if squares[temp_rank][temp_file].colour == self.colour:     #Prevents capture of the same colour
-                    temp_file = -99
-                    temp_rank = -99
-            valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+                if squares[temp_rank][temp_file].colour == self.colour:
+                    return valid_moves_list
+                else:
+                    valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+            else:
+                valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+            
             
         return valid_moves_list
 
@@ -131,6 +122,9 @@ class Bishop(Piece):
                 if squares[temp_rank][temp_file].colour == self.colour:
                     break
             valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+            if squares[temp_rank][temp_file] != 0:
+                if squares[temp_rank][temp_file] != self:
+                    break
             temp_file = temp_file + direction_file             #Continues move in set direction
             temp_rank = temp_rank + direction_rank
             
@@ -169,6 +163,9 @@ class Rook(Piece):
                 if squares[temp_rank][temp_file].colour == self.colour:
                     break
             valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+            if squares[temp_rank][temp_file] != 0:
+                if squares[temp_rank][temp_file] != self:
+                    break
             temp_file = temp_file + direction_file             #Continues move in set direction
             temp_rank = temp_rank + direction_rank
             
@@ -205,10 +202,13 @@ class Queen(Piece):
         temp_file = temp_file + direction_file             #Continues move in set direction
         temp_rank = temp_rank + direction_rank
         while 0 <= temp_file <= 7 and 0 <= temp_rank <= 7:      #While move is on the chessboard
-            if squares[temp_rank][temp_file] !=0:
+            if squares[temp_rank][temp_file] != 0:
                 if squares[temp_rank][temp_file].colour == self.colour:
                     break
             valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+            if squares[temp_rank][temp_file] != 0:
+                if squares[temp_rank][temp_file] != self:
+                    break
             temp_file = temp_file + direction_file             #Continues move in set direction
             temp_rank = temp_rank + direction_rank
             
@@ -246,9 +246,12 @@ class King(Piece):
         if 0 <= temp_file <= 7 and 0 <= temp_rank <= 7:      #While move is on the chessboard
             if squares[temp_rank][temp_file] !=0:
                 if squares[temp_rank][temp_file].colour == self.colour:
-                    temp_rank = -99
-                    temp_file = -99
-            valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+                    return valid_moves_list
+                else:
+                    valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+            else:
+                valid_moves_list.append((self, self.file ,self.rank, temp_file, temp_rank))
+            
             
         return valid_moves_list
             

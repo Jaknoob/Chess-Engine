@@ -21,7 +21,7 @@ def main():
                 running = False
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                print(board.select(click()))
+                board.select(click())
 
         # Fill the screen with the desired color
         screen.fill(BACKGROUND_COLOUR)
