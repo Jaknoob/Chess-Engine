@@ -110,7 +110,8 @@ class Board:
 
 
             if selected_piece != None:                                                   #Only if a piece is already selected
-                self.move(selected_piece, selected_file, selected_rank, int(click_x), int(click_y))#Move this selected piece, to the square clicked afterwards
+                move_tuple = (selected_piece, selected_file, selected_rank, int(click_x), int(click_y))
+                self.move(move_tuple)#Move this selected piece, to the square clicked afterwards
             
             self.unselect()
             selected_piece = None               #Resets selected piece after it has been moved
@@ -138,26 +139,35 @@ class Board:
 
     #Moves a piece in the squares array and visually, changes turn
 
-    def move(self, piece, starting_file, starting_rank, ending_file, ending_rank):
-        self.valid_moves_list = self.update_moves(self.squares)
-        self.valid_moves_list = self.simulate_moves(self.valid_moves_list)
-        for move in self.valid_moves_list:
-            if move == (piece, starting_file, starting_rank, ending_file, ending_rank) and self.turn == piece.colour: #If the move is valid and it is your turn
-                if self.turn == "white":
-                    self.turn = "black"
-                elif self.turn == "black":
-                    self.turn = "white"
-                self.squares[starting_rank][starting_file] = 0          #Clears original square
-                piece.rank = ending_rank                        
-                piece.file = ending_file
-                self.squares[ending_rank][ending_file] = piece          #Moves piece to new position on board
-            else:
-                self.unselect()
-        self.valid_moves_list = self.update_moves(self.squares)                      #After each move, check for new moves and checks.
-        self.valid_moves_list = self.simulate_moves(self.valid_moves_list)                #After each move, detects checks and pins.
-        self.is_checkmate(self.valid_moves_list)
-        self.is_stalemate(self.valid_moves_list)
-        self.moves_history.append(move)
+    def move(self, proposed_move):
+
+        if len(proposed_move) == 2:
+            for individual_move in proposed_move:
+                self.move(individual_move)
+        else:
+            piece = proposed_move[0]
+            starting_file = proposed_move[1]
+            starting_rank = proposed_move[2]
+            ending_file = proposed_move[3]
+            ending_rank = proposed_move[4]
+            for move in self.valid_moves_list:
+                if move == (piece, starting_file, starting_rank, ending_file, ending_rank) and self.turn == piece.colour: #If the move is valid and it is your turn
+                    if self.turn == "white":
+                        self.turn = "black"
+                    elif self.turn == "black":
+                        self.turn = "white"
+                    self.squares[starting_rank][starting_file] = 0          #Clears original square
+                    piece.rank = ending_rank                        
+                    piece.file = ending_file
+                    self.squares[ending_rank][ending_file] = piece          #Moves piece to new position on board
+                    self.moves_history.append(proposed_move)
+                else:
+                    self.unselect()
+            self.valid_moves_list = self.update_moves(self.squares)                      #After each move, check for new moves and checks.
+            self.valid_moves_list = self.simulate_moves(self.valid_moves_list)                #After each move, detects checks and pins.
+            self.is_checkmate(self.valid_moves_list)
+            self.is_stalemate(self.valid_moves_list)
+            
             
 
     #Creates new list of valid moves
@@ -170,6 +180,13 @@ class Board:
                     if board[row][column] != 0:          
                         valid_moves_list.extend(board[row][column].valid_moves(board))
 
+        if self.turn == "white":
+            self.can_kingside_castle(0, "black")
+            self.can_queenside_castle(0, "black")
+        if self.turn == "black":
+            self.can_kingside_castle(7, "white")
+            self.can_queenside_castle(7, "white")
+
         unique_moves_list = []
 
         for move in valid_moves_list:
@@ -180,18 +197,23 @@ class Board:
             if unique:
                 unique_moves_list.append(move)
 
-        self.can_castle(0, "black", 1, 3)
-        self.can_castle(0, "black", 5, 6)
-        self.can_castle(7, "white", 1, 3)
-        self.can_castle(7, "white", 5, 6)
+        for move in unique_moves_list:
+            if len(move) == 2:
+                print(move)
 
+        self.valid_moves_list = unique_moves_list
         return unique_moves_list
     
     def is_check(self, board, valid_moves_list):
         for move in valid_moves_list:
-            if board[move[4]][move[3]] != 0:
-                if board[move[4]][move[3]].__class__ == King:
-                    return True
+            if len(move) == 2:
+                for individual_move in move:
+                    if board[individual_move[4]][individual_move[3]].__class__ == King:
+                        return True
+            else:
+                if board[move[4]][move[3]] != 0:
+                    if board[move[4]][move[3]].__class__ == King:
+                        return True
     
     def simulate_moves(self, valid_moves_list):
         escape_check_moves = []  # Valid moves to escape check
@@ -208,14 +230,20 @@ class Board:
                         new_piece = piece.__class__(row, column, piece.colour)  # Create a new piece of the same class
                         temp_squares[row][column] = new_piece
 
-            # Simulate the move on the temporary board
-            temp_squares[move[2]][move[1]] = 0
-            temp_squares[move[4]][move[3]] = move[0]
+            if len(move) == 2:
+                for individual_move in move:
+                    temp_squares[individual_move[2]][individual_move[1]] = 0
+                    temp_squares[individual_move[4]][individual_move[3]] = individual_move[0]
+            else:
+                # Simulate the move on the temporary board
+                temp_squares[move[2]][move[1]] = 0
+                temp_squares[move[4]][move[3]] = move[0]
 
-            # Check if the king is still in check on the simulated board
-            temp_moves_list = self.update_moves(temp_squares)
-            if not self.is_check(temp_squares, temp_moves_list) and move[0].colour == self.turn:
-                escape_check_moves.append(move)  # Move is valid and helps escape check
+
+                # Check if the king is still in check on the simulated board
+                temp_moves_list = self.update_moves(temp_squares)
+                if not self.is_check(temp_squares, temp_moves_list) and move[0].colour == self.turn:
+                    escape_check_moves.append(move)  # Move is valid and helps escape check
 
         return escape_check_moves
     
@@ -240,54 +268,56 @@ class Board:
             print("Stalemate!")
             return True
     
-    def can_castle(self, rank, colour, lower_limit, upper_limit):
-        temp_castle = False
+    def can_kingside_castle(self, rank, colour):
+        king = self.squares[rank][4]
+        rook = self.squares[rank][7]
 
-        lower_limit = 1
-        upper_limit = 3
-        colour = "black"
-        rank = 0
-        #If the black king hasnt moved, and its not in check
-        if self.squares[rank][4].__class__ == King and self.squares[rank][4].colour == colour and not self.is_check(self.squares, self.valid_moves_list):       
-            for move in self.moves_history:
-                if (move[0].__class__ == King) or (move[0].__class__ == Rook and move[0].colour == colour):    #Check if black king or rooks have moved.
-                    temp_castle = False
-                else:
-                    temp_castle = True
-            for move in self.valid_moves_list:
-                for i in range(lower_limit, upper_limit):
-                    if move[4] == rank and move[3] == i:   #If there is a piece targetting the squares inbetween the king and rook
-                        temp_castle = False
-                    else: 
-                        temp_castle = True
-            for i in range(lower_limit, upper_limit):
-                if self.squares[0][i] == 0:
-                    temp_castle = True
-                else:
-                    temp_castle = False
+        king_moved = any(move[0] == king and move[0].colour == colour for move in self.moves_history)
+        rook_moved = any(move[0] == rook and move[0].colour == colour for move in self.moves_history)
 
-        if temp_castle:
-            if upper_limit > 4: 
-                self.valid_moves_list.append(((self.squares[rank][4], rank, 4, rank, upper_limit + 1), (self.squares[rank][7], rank, 7, rank, upper_limit)))
-            else:
-                self.valid_moves_list.append(((self.squares[rank][4], rank, 4, rank, upper_limit - 1), (self.squares[rank][0], rank, 0, rank, upper_limit)))
-            
-        
+        # If the king hasn't moved and is not in check
+        if king.__class__ == King and king.colour == colour and not self.is_check(self.squares, self.valid_moves_list):
+            square_targetted = False
+            piece_found = False
+            for i in range(5, 6):
+                if any(move[4] == rank and move[3] == i for move in self.valid_moves_list if len(move) != 2):
+                    # If there is a piece targeting the squares between the king and rook
+                    square_targetted = True
+                    break
 
+            for i in range(5, 6):
+                if self.squares[rank][i] != 0:
+                    # If there is a piece on the squares between the king and rook
+                    piece_found = True
+                    break
+                
+            if not (square_targetted or king_moved or rook_moved or piece_found):
+                    print(f"{colour} can king-side castle")
 
+    def can_queenside_castle(self, rank, colour):
+        king = self.squares[rank][4]
+        rook = self.squares[rank][0]
 
+        king_moved = any(move[0] == king and move[0].colour == colour for move in self.moves_history)
+        rook_moved = any(move[0] == rook and move[0].colour == colour for move in self.moves_history)
 
-        
-            
-        if self.squares[7][4].__class__ == King and self.squares[7][4].colour == "white":
-            pass
+        # If the king hasn't moved and is not in check
+        if king.__class__ == King and king.colour == colour and not self.is_check(self.squares, self.valid_moves_list):
+            square_targetted = False
+            piece_found = False
+            for i in range(1, 4):  # Debug print to see which squares are being checked
+                print(f"Checking square {i} for queenside castling")
+                if any(move[4] == rank and move[3] == i for move in self.valid_moves_list if len(move) != 2):
+                    # If there is a piece targeting the squares between the king and rook
+                    square_targetted = True
+                    break
 
+            for i in range(1, 4):  # Debug print to see which squares are being checked
+                print(f"Checking piece on square {i}")
+                if self.squares[rank][i] != 0:
+                    # If there is a piece on the squares between the king and rook
+                    piece_found = True
+                    break
 
-
-
-
-
-
-                    
-
-
+            if not (square_targetted or king_moved or rook_moved or piece_found):
+                print(f"{colour} can queen-side castle")
