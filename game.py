@@ -1,5 +1,6 @@
 import pygame
 from board import Board
+from chessAI import ChessAI
 from consts import *
 
 
@@ -10,7 +11,8 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    board = Board(8,8, screen) 
+    board = Board(8,8, screen, "white") 
+    bot = ChessAI(board, "black")
     board.starting_position()
 
     while running:
@@ -28,6 +30,9 @@ def main():
         #Draw the Chessboard
         board.draw_board()
 
+        if board.turn == bot.colour and not board.is_checkmate(board.valid_moves_list) or board.is_stalemate(board.valid_moves_list):
+            bot.play_best_move()
+            board.draw_board()
 
         # Update the screen
         pygame.display.flip()

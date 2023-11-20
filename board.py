@@ -3,9 +3,10 @@ from consts import *
 from piece import Pawn, Knight, Bishop, Rook, Queen, King
 
 class Board:
-    def __init__(self, rows, columns, surface):
+    def __init__(self, rows, columns, surface, player_colour):
         self.rows = rows
         self.columns = columns              
+        self.player_colour = player_colour
         self.start_x = WIDTH/4              #Position on the screen from the left where chessboard should start being drawn
         self.start_y = HEIGHT/8             #Position on the screen from the top where chessboard should start being drawn
         self.square_size = HEIGHT/12        #Size of the squares on the chessboard
@@ -96,37 +97,37 @@ class Board:
             click_x, click_y = click_x / self.square_size, click_y / self.square_size #Puts difference in terms of squares
             click_x, click_y = click_x // 1, click_y // 1                       #Round down to the nearest integer
 
-            selected_square = self.squares[int(click_y)][int(click_x)]
-            selected_piece = None
 
-            for row in range(len(self.squares)):                #Loops through all of squares and checks which piece is selected
-                for column in range(len(self.squares)):         #This piece is moved on another click of a square on the board
-                    if self.squares[row][column] != 0:
-                        if self.squares[row][column].selected == True:    #Checks if a piece is selected
-                            selected_piece = self.squares[row][column]
-                            self.display_valid_moves(selected_piece, self.valid_moves_list)
-                            selected_rank = row
-                            selected_file = column
+            if self.turn == self.player_colour:
+                selected_square = self.squares[int(click_y)][int(click_x)]
+                selected_piece = None
+
+                for row in range(len(self.squares)):                #Loops through all of squares and checks which piece is selected
+                    for column in range(len(self.squares)):         #This piece is moved on another click of a square on the board
+                        if self.squares[row][column] != 0:
+                            if self.squares[row][column].selected == True:    #Checks if a piece is selected
+                                selected_piece = self.squares[row][column]
+                                self.display_valid_moves(selected_piece, self.valid_moves_list)
+                                selected_rank = row
+                                selected_file = column
 
 
-            if selected_piece != None:                                                   #Only if a piece is already selected
-                move_tuple = (selected_piece, selected_file, selected_rank, int(click_x), int(click_y))
-                self.move(move_tuple)#Move this selected piece, to the square clicked afterwards
-            
-            self.unselect()
-            selected_piece = None               #Resets selected piece after it has been moved
+                if selected_piece != None:                                                   #Only if a piece is already selected
+                    move_tuple = (selected_piece, selected_file, selected_rank, int(click_x), int(click_y))
+                    self.move(move_tuple)#Move this selected piece, to the square clicked afterwards
+                
+                self.unselect()
+                selected_piece = None               #Resets selected piece after it has been moved
 
-            if selected_square != 0:                    #Selects a piece if it is clicked
-                if selected_square.colour == self.turn:       
-                    selected_square.selected = True
-                    selected_square.is_selected()
+                if selected_square != 0:                    #Selects a piece if it is clicked
+                    if selected_square.colour == self.turn:       
+                        selected_square.selected = True
+                        selected_square.is_selected()
+                    else:
+                        self.unselect()
                 else:
                     self.unselect()
-            else:
-                self.unselect()
-                            
 
-            return (int(click_y), int(click_x)), selected_square
 
 
     #Loops through all the pieces and deselects all
@@ -140,33 +141,43 @@ class Board:
     #Moves a piece in the squares array and visually, changes turn
 
     def move(self, proposed_move):
+        piece = proposed_move[0]
+        starting_file = proposed_move[1]
+        starting_rank = proposed_move[2]
+        ending_file = proposed_move[3]
+        ending_rank = proposed_move[4]
+        for move in self.valid_moves_list:
+            if move == (piece, starting_file, starting_rank, ending_file, ending_rank) and self.turn == piece.colour: #If the move is valid and it is your turn
+                self.squares[starting_rank][starting_file] = 0          #Clears original square
+                piece.rank = ending_rank                        
+                piece.file = ending_file
+                self.squares[ending_rank][ending_file] = piece          #Moves piece to new position on board
+                self.moves_history.append(proposed_move)
 
-        if len(proposed_move) == 2:
-            for individual_move in proposed_move:
-                self.move(individual_move)
-        else:
-            piece = proposed_move[0]
-            starting_file = proposed_move[1]
-            starting_rank = proposed_move[2]
-            ending_file = proposed_move[3]
-            ending_rank = proposed_move[4]
-            for move in self.valid_moves_list:
-                if move == (piece, starting_file, starting_rank, ending_file, ending_rank) and self.turn == piece.colour: #If the move is valid and it is your turn
+                #Checks for promotion
+                if piece.__class__ == Pawn:
+                    self.pawn_promotion(piece)
+                #Checks for castling move, and moves rook accordingly.
+                if piece.__class__ == King and ending_file - starting_file == 2:
+                    rook = self.squares[starting_rank][7]
+                    rook_move = (rook, 7, starting_rank, 5, starting_rank)
+                    self.move(rook_move)                                
+                elif piece.__class__ == King and ending_file - starting_file == -2:
+                    rook = self.squares[starting_rank][0]
+                    rook_move = (rook, 0, starting_rank, 3, starting_rank)
+                    self.move(rook_move)
+                else:
                     if self.turn == "white":
                         self.turn = "black"
                     elif self.turn == "black":
                         self.turn = "white"
-                    self.squares[starting_rank][starting_file] = 0          #Clears original square
-                    piece.rank = ending_rank                        
-                    piece.file = ending_file
-                    self.squares[ending_rank][ending_file] = piece          #Moves piece to new position on board
-                    self.moves_history.append(proposed_move)
-                else:
-                    self.unselect()
-            self.valid_moves_list = self.update_moves(self.squares)                      #After each move, check for new moves and checks.
-            self.valid_moves_list = self.simulate_moves(self.valid_moves_list)                #After each move, detects checks and pins.
-            self.is_checkmate(self.valid_moves_list)
-            self.is_stalemate(self.valid_moves_list)
+                    self.valid_moves_list = self.update_moves(self.squares)                      #After each move, check for new moves and checks.
+                    self.valid_moves_list = self.simulate_moves(self.valid_moves_list)                #After each move, detects checks and pins.
+                    self.is_checkmate(self.valid_moves_list)
+                    self.is_stalemate(self.valid_moves_list)
+            else:
+                self.unselect()
+            
             
             
 
@@ -180,10 +191,10 @@ class Board:
                     if board[row][column] != 0:          
                         valid_moves_list.extend(board[row][column].valid_moves(board))
 
-        if self.turn == "white":
+        if self.turn == "black":
             self.can_kingside_castle(0, "black")
             self.can_queenside_castle(0, "black")
-        if self.turn == "black":
+        if self.turn == "white":
             self.can_kingside_castle(7, "white")
             self.can_queenside_castle(7, "white")
 
@@ -197,29 +208,23 @@ class Board:
             if unique:
                 unique_moves_list.append(move)
 
-        for move in unique_moves_list:
-            if len(move) == 2:
-                print(move)
 
         self.valid_moves_list = unique_moves_list
         return unique_moves_list
     
     def is_check(self, board, valid_moves_list):
         for move in valid_moves_list:
-            if len(move) == 2:
-                for individual_move in move:
-                    if board[individual_move[4]][individual_move[3]].__class__ == King:
-                        return True
-            else:
-                if board[move[4]][move[3]] != 0:
-                    if board[move[4]][move[3]].__class__ == King:
-                        return True
+            if board[move[4]][move[3]] != 0:
+                if board[move[4]][move[3]].__class__ == King:
+                    return True
+        else:
+            return False
     
     def simulate_moves(self, valid_moves_list):
         escape_check_moves = []  # Valid moves to escape check
         for move in valid_moves_list:
             # Create a new board with the same dimensions
-            temp_board = Board(self.rows, self.columns, self.surface)
+            temp_board = Board(self.rows, self.columns, self.surface, self.player_colour)
             temp_squares = temp_board.squares
 
             # Copy piece positions and attributes without copying pygame.Surface objects
@@ -230,20 +235,14 @@ class Board:
                         new_piece = piece.__class__(row, column, piece.colour)  # Create a new piece of the same class
                         temp_squares[row][column] = new_piece
 
-            if len(move) == 2:
-                for individual_move in move:
-                    temp_squares[individual_move[2]][individual_move[1]] = 0
-                    temp_squares[individual_move[4]][individual_move[3]] = individual_move[0]
-            else:
-                # Simulate the move on the temporary board
-                temp_squares[move[2]][move[1]] = 0
-                temp_squares[move[4]][move[3]] = move[0]
+            # Simulate the move on the temporary board
+            temp_squares[move[2]][move[1]] = 0
+            temp_squares[move[4]][move[3]] = move[0]
 
-
-                # Check if the king is still in check on the simulated board
-                temp_moves_list = self.update_moves(temp_squares)
-                if not self.is_check(temp_squares, temp_moves_list) and move[0].colour == self.turn:
-                    escape_check_moves.append(move)  # Move is valid and helps escape check
+            # Check if the king is still in check on the simulated board
+            temp_moves_list = self.update_moves(temp_squares)
+            if not self.is_check(temp_squares, temp_moves_list) and move[0].colour == self.turn:
+                escape_check_moves.append(move)  # Move is valid and helps escape check
 
         return escape_check_moves
     
@@ -259,65 +258,71 @@ class Board:
                 pygame.draw.circle(self.surface, (255,0,0), (temp_x, temp_y), 5)
 
     def is_checkmate(self, valid_moves_list):
-        if valid_moves_list == [] and self.is_check(self.squares, valid_moves_list):
+        if valid_moves_list == [] and self.simulate_moves(self.valid_moves_list) == []:
             print("Checkmate!")
             return True
 
     def is_stalemate(self, valid_moves_list):
-        if valid_moves_list == [] and not self.is_check(self.squares, valid_moves_list):
+        if valid_moves_list == [] and not self.is_checkmate(valid_moves_list):
             print("Stalemate!")
             return True
     
     def can_kingside_castle(self, rank, colour):
-        king = self.squares[rank][4]
-        rook = self.squares[rank][7]
 
-        king_moved = any(move[0] == king and move[0].colour == colour for move in self.moves_history)
-        rook_moved = any(move[0] == rook and move[0].colour == colour for move in self.moves_history)
+        king_moved = any(move[0].__class__ == King and move[0].colour == colour for move in self.moves_history)
+        rook_moved = any(move[0].__class__ == Rook and move[0].colour == colour and move[1] == 7 for move in self.moves_history)
 
+    
         # If the king hasn't moved and is not in check
-        if king.__class__ == King and king.colour == colour and not self.is_check(self.squares, self.valid_moves_list):
+        if not self.is_check(self.squares, self.valid_moves_list):
             square_targetted = False
             piece_found = False
-            for i in range(5, 6):
-                if any(move[4] == rank and move[3] == i for move in self.valid_moves_list if len(move) != 2):
+            for i in range(5, 7):
+                if any(move[4] == rank and move[3] == i and move[0].colour != colour for move in self.valid_moves_list):
                     # If there is a piece targeting the squares between the king and rook
                     square_targetted = True
                     break
 
-            for i in range(5, 6):
+            for i in range(5, 7):
                 if self.squares[rank][i] != 0:
                     # If there is a piece on the squares between the king and rook
                     piece_found = True
                     break
                 
             if not (square_targetted or king_moved or rook_moved or piece_found):
-                    print(f"{colour} can king-side castle")
+                castling_move = (self.squares[rank][4], 4, rank, 6, rank)
+                self.valid_moves_list.append(castling_move)
 
     def can_queenside_castle(self, rank, colour):
-        king = self.squares[rank][4]
-        rook = self.squares[rank][0]
 
-        king_moved = any(move[0] == king and move[0].colour == colour for move in self.moves_history)
-        rook_moved = any(move[0] == rook and move[0].colour == colour for move in self.moves_history)
+        king_moved = any(move[0].__class__ == King and move[0].colour == colour for move in self.moves_history)
+        rook_moved = any(move[0].__class__ == Rook and move[0].colour == colour and move[1] == 0 for move in self.moves_history)
 
         # If the king hasn't moved and is not in check
-        if king.__class__ == King and king.colour == colour and not self.is_check(self.squares, self.valid_moves_list):
+        if not self.is_check(self.squares, self.valid_moves_list):
             square_targetted = False
             piece_found = False
-            for i in range(1, 4):  # Debug print to see which squares are being checked
-                print(f"Checking square {i} for queenside castling")
-                if any(move[4] == rank and move[3] == i for move in self.valid_moves_list if len(move) != 2):
+            for i in range(1, 4):
+                if any(move[4] == rank and move[3] == i and move[0].colour != colour for move in self.valid_moves_list):
                     # If there is a piece targeting the squares between the king and rook
                     square_targetted = True
                     break
 
-            for i in range(1, 4):  # Debug print to see which squares are being checked
-                print(f"Checking piece on square {i}")
+            for i in range(1, 4):
                 if self.squares[rank][i] != 0:
                     # If there is a piece on the squares between the king and rook
                     piece_found = True
                     break
-
+            
             if not (square_targetted or king_moved or rook_moved or piece_found):
-                print(f"{colour} can queen-side castle")
+                castling_move = (self.squares[rank][4], 4, rank, 2, rank)
+                self.valid_moves_list.append(castling_move)
+
+    def pawn_promotion(self, pawn):
+        if pawn.colour == "white" and pawn.rank == 0:
+            print(f"white can promote on {pawn.file}, {pawn.rank}")
+            self.squares[pawn.rank][pawn.file] = Queen(pawn.rank, pawn.file, pawn.colour)
+        elif pawn.colour == "black" and pawn.rank == 7:
+            print(f"black can promote on {pawn.file}, {pawn.rank}")
+            self.squares[pawn.rank][pawn.file] = Queen(pawn.rank, pawn.file, pawn.colour)
+            
