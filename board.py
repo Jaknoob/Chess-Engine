@@ -146,35 +146,42 @@ class Board:
         starting_rank = proposed_move[2]
         ending_file = proposed_move[3]
         ending_rank = proposed_move[4]
-        for move in self.valid_moves_list:
-            if move == (piece, starting_file, starting_rank, ending_file, ending_rank) and self.turn == piece.colour: #If the move is valid and it is your turn
-                self.squares[starting_rank][starting_file] = 0          #Clears original square
-                piece.rank = ending_rank                        
-                piece.file = ending_file
-                self.squares[ending_rank][ending_file] = piece          #Moves piece to new position on board
-                self.moves_history.append(proposed_move)
 
-                #Checks for promotion
-                if piece.__class__ == Pawn:
-                    self.pawn_promotion(piece)
-                #Checks for castling move, and moves rook accordingly.
-                if piece.__class__ == King and ending_file - starting_file == 2:
-                    rook = self.squares[starting_rank][7]
-                    rook_move = (rook, 7, starting_rank, 5, starting_rank)
-                    self.move(rook_move)                                
-                elif piece.__class__ == King and ending_file - starting_file == -2:
-                    rook = self.squares[starting_rank][0]
-                    rook_move = (rook, 0, starting_rank, 3, starting_rank)
-                    self.move(rook_move)
-                else:
-                    if self.turn == "white":
-                        self.turn = "black"
-                    elif self.turn == "black":
-                        self.turn = "white"
-                    self.valid_moves_list = self.update_moves(self.squares)                      #After each move, check for new moves and checks.
-                    self.valid_moves_list = self.simulate_moves(self.valid_moves_list)                #After each move, detects checks and pins.
-                    self.is_checkmate(self.valid_moves_list)
-                    self.is_stalemate(self.valid_moves_list)
+        for move in self.valid_moves_list:
+            if (move[0].__class__ == piece.__class__ and
+                move[1] == starting_file and 
+                move[2] == starting_rank and
+                move[3] == ending_file and 
+                move[4] == ending_rank and
+                self.turn == piece.colour): #If the move is valid and it is your turn
+                    
+                    self.squares[starting_rank][starting_file] = 0          #Clears original square
+                    piece.rank = ending_rank                        
+                    piece.file = ending_file
+                    self.squares[ending_rank][ending_file] = piece          #Moves piece to new position on board
+                    self.moves_history.append(proposed_move)
+
+                    #Checks for promotion
+                    if piece.__class__ == Pawn:
+                        self.pawn_promotion(piece)
+                    #Checks for castling move, and moves rook accordingly.
+                    if piece.__class__ == King and ending_file - starting_file == 2:
+                        rook = self.squares[starting_rank][7]
+                        rook_move = (rook, 7, starting_rank, 5, starting_rank)
+                        self.move(rook_move)                                
+                    elif piece.__class__ == King and ending_file - starting_file == -2:
+                        rook = self.squares[starting_rank][0]
+                        rook_move = (rook, 0, starting_rank, 3, starting_rank)
+                        self.move(rook_move)
+                    else:
+                        if self.turn == "white":
+                            self.turn = "black"
+                        elif self.turn == "black":
+                            self.turn = "white"
+                        self.valid_moves_list = self.update_moves(self.squares)                      #After each move, check for new moves and checks.
+                        self.valid_moves_list = self.simulate_moves(self.valid_moves_list)                #After each move, detects checks and pins.
+                        self.is_checkmate(self.valid_moves_list)
+                        self.is_stalemate(self.valid_moves_list)
             else:
                 self.unselect()
             

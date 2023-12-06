@@ -36,3 +36,19 @@ MISTAKE_COLOUR = (230,175,108)
 GOOD_MOVE_COLOUR = (208,245,195)
 GREAT_MOVE_COLOUR = (78,202,34)
 SELECTED_SQUARE_COLOUR = (121, 182, 123)
+MOVE_WINDOW_COLOUR = (204,145,91)
+
+piece_icons = {
+    "whitePawn" : "♙",
+    "whiteKnight" : "♘",
+    "whiteBishop" : "♗",
+    "whiteRook" : "♖",
+    "whiteQueen" : "♕",
+    "whiteKing" : "♔",
+    "blackPawn" : "♟︎",
+    "blackKnight" : "♞",
+    "blackBishop" : "♝",
+    "blackRook" : "♜",
+    "blackQueen" : "♛",
+    "blackKing" : "♚"
+}
